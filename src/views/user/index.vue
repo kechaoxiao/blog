@@ -49,7 +49,7 @@
               type="primary"
               icon="el-icon-edit"
               size="mini"
-              @click="showEditDialog(scope.row.id)"
+              @click="editUserInfo(scope.row.id)"
             ></el-button>
             <!-- 删除 -->
             <el-button
@@ -88,6 +88,36 @@
       </el-pagination>
       <!-- 修改用户的对话框 -->
       <el-dialog
+        title="修改用户"
+        :visible.sync="editDialogVisible"
+        width="50%"
+        @close="editDialogClosed"
+      >
+        <!-- 对话框主体区域 -->
+        <el-form
+          :model="editForm"
+          :rules="editFormRules"
+          ref="editFormRef"
+          label-width="70px"
+        >
+          <el-form-item label="用户名" prop="username">
+            <el-input v-model="editForm.username" disabled></el-input>
+          </el-form-item>
+          <el-form-item label="邮箱" prop="email">
+            <el-input v-model="editForm.email"></el-input>
+          </el-form-item>
+          <el-form-item label="电话" prop="mobile">
+            <el-input v-model="editForm.mobile"></el-input>
+          </el-form-item>
+        </el-form>
+        <!-- 对话框底部区域 -->
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="editDialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="showEditDialogClosed">确 定</el-button>
+        </span>
+      </el-dialog>
+      <!-- 添加用户的对话框 -->
+      <el-dialog
         title="添加用户"
         :visible.sync="addDialogVisible"
         width="50%"
@@ -101,11 +131,15 @@
           label-width="70px"
         >
           <el-form-item label="用户名" prop="username">
-            <el-input v-model="addForm.username" disabled></el-input>
+            <el-input v-model="addForm.username"></el-input>
+          </el-form-item>
+          <el-form-item label="密码" prop="password">
+            <el-input v-model="addForm.password"></el-input>
           </el-form-item>
           <el-form-item label="邮箱" prop="email">
             <el-input v-model="addForm.email"></el-input>
           </el-form-item>
+
           <el-form-item label="电话" prop="mobile">
             <el-input v-model="addForm.mobile"></el-input>
           </el-form-item>
@@ -113,41 +147,7 @@
         <!-- 对话框底部区域 -->
         <span slot="footer" class="dialog-footer">
           <el-button @click="addDialogVisible = false">取 消</el-button>
-          <el-button type="primary" @click="editUserInfo">确 定</el-button>
-        </span>
-      </el-dialog>
-      <!-- 添加用户的对话框 -->
-      <el-dialog
-        title="添加用户"
-        :visible.sync="appendDialogVisible"
-        width="50%"
-        @close="addDialogClosed"
-      >
-        <!-- 对话框主体区域 -->
-        <el-form
-          :model="editForm"
-          :rules="editFormRules"
-          ref="editFormRef"
-          label-width="70px"
-        >
-          <el-form-item label="用户名" prop="username">
-            <el-input v-model="editForm.username"></el-input>
-          </el-form-item>
-          <el-form-item label="密码" prop="password">
-            <el-input v-model="editForm.password"></el-input>
-          </el-form-item>
-          <el-form-item label="邮箱" prop="email">
-            <el-input v-model="editForm.email"></el-input>
-          </el-form-item>
-
-          <el-form-item label="电话" prop="mobile">
-            <el-input v-model="editForm.mobile"></el-input>
-          </el-form-item>
-        </el-form>
-        <!-- 对话框底部区域 -->
-        <span slot="footer" class="dialog-footer">
-          <el-button @click="addDialogVisible = false">取 消</el-button>
-          <el-button type="primary" @click="ApeendUserInfo">确 定</el-button>
+          <el-button type="primary" @click="addUserInfo">确 定</el-button>
         </span>
       </el-dialog>
     </el-card>
@@ -186,15 +186,17 @@ export default {
       userList: [],
       currentPage4: 4,
       total: null, //页码
-      addDialogVisible: false, //对话框是否开启
-      appendDialogVisible: false, //添加用户对话框否开启
-      addForm: {
+      addDialogVisible: false, //添加对话框是否开启
+      editDialogVisible: false, //修改用户对话框否开启
+      editForm: {
+        //修改用户信息
         username: "",
         email: "110528660@qq.com",
         mobile: "15770678319",
       },
-      editForm: {
-        username: "1sw1",
+      addForm: {
+        // 添加用户信息
+        username: "小克超",
         email: "1@qq.com",
         mobile: "15770678319",
         password: "1111",
@@ -259,7 +261,7 @@ export default {
     this.getUserList();
   },
   methods: {
-    //  获取用户信息
+    //获取用户信息
     async getUserList() {
       const { data: res } = await this.$http.get("users", {
         params: this.queryInfo,
@@ -292,29 +294,29 @@ export default {
       this.queryInfo.pagenum = val;
       this.getUserList();
     },
-    // 修改对话框表单重置
+    // 修改用户对话框表单重置
     editDialogClosed() {
-      this.$refs.addFormRef.resetFields();
+      this.$refs.editFormRef.resetFields();
     },
-    // 展示编辑用户的对话框
-    async showEditDialog(id) {
+    // 展示修改用户的对话框
+    async editUserInfo(id) {
       const { data: res } = await this.$http.get("users/" + id);
-
+      console.log(res);
       if (res.meta.status !== 200) {
         return this.$message.error("查询用户信息失败！");
       }
 
-      this.addForm = res.data;
-      this.addDialogVisible = true;
+      this.editForm = res.data;
+      this.editDialogVisible = true;
     },
     // 修改用户信息
-    editUserInfo() {
-      this.$refs.addFormRef.validate(async (valid) => {
+    showEditDialogClosed() {
+      this.$refs.editFormRef.validate(async (valid) => {
         if (!valid) return;
         // 发起修改用户信息的数据请求
-        const { data: res } = await this.$http.put("users/" + this.addForm.id, {
-          email: this.addForm.email,
-          mobile: this.addForm.mobile,
+        const { data: res } = await this.$http.put("users/" + this.editForm.id, {
+          email: this.editForm.email,
+          mobile: this.editForm.mobile,
         });
 
         if (res.meta.status !== 200) {
@@ -322,34 +324,34 @@ export default {
         }
 
         // 关闭对话框
-        this.addDialogVisible = false;
+        this.editDialogVisible = false;
         // 刷新数据列表
         this.getUserList();
         // 提示修改成功
         this.$message.success("更新用户信息成功！");
       });
     },
-    // 添加新用户信息
+    // 展示添加用户的对话框
     addUser() {
-      this.appendDialogVisible = true;
+      this.addDialogVisible = true;
     },
-    // 修改对话框表单重置
+    // 添加对话框表单重置
     addDialogClosed() {
-      this.$refs.editFormRef.resetFields();
+      this.$refs.addFormRef.resetFields();
     },
     // 添加用户
-    ApeendUserInfo() {
-      this.$refs.editFormRef.validate(async (valid) => {
+    addUserInfo() {
+      this.$refs.addFormRef.validate(async (valid) => {
         if (!valid) return this.$message.error("请填写完整用户信息");
-        const { data: res } = await this.$http.post("users", this.editForm);
-        console.log(res);
+        const { data: res } = await this.$http.post("users", this.addForm);
+        // console.log(res);
         if (res.meta.status !== 201) {
           return this.message.error("添加用户失败");
         }
         //   添加成功的提示
         this.$message.success("添加用户成功");
         //关闭对话框
-        this.appendDialogVisible = false;
+        this.addDialogVisible = false;
         //重新请求最新的数据
         this.getUserList();
       });
