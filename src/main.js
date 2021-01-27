@@ -12,9 +12,17 @@ import 'element-ui/lib/theme-chalk/index.css'
 // 加载全局样式文件
 import './styles/index.less'
 
+// 导入字体图标
+import './assets/fonts/iconfont.css'
+
 // 设置请求的根路径
 axios.defaults.baseURL = 'http://127.0.0.1:8888/api/private/v1/'
 
+// axios 请求拦截器
+axios.interceptors.request.use(config => {
+  config.headers.Authorization = window.sessionStorage.getItem("token")
+  return config
+})
 //  挂载axios
 Vue.prototype.$http = axios
 
